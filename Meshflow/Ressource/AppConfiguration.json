@@ -1,0 +1,99 @@
+{
+    "defaultTheme": "system",
+    "defaultLanguage": "de",
+    "themes": [
+        {
+            "id": "system",
+            "displayNames": {
+                "de": "Automatisch",
+                "en": "Automatic"
+            }
+        },
+        {
+            "id": "light",
+            "displayNames": {
+                "de": "Weiss",
+                "en": "Light"
+            }
+        },
+        {
+            "id": "dark",
+            "displayNames": {
+                "de": "Schwarz",
+                "en": "Dark"
+            }
+        }
+    ],
+    "languages": [
+        {
+            "id": "de",
+            "displayName": "Deutsch"
+        },
+        {
+            "id": "en",
+            "displayName": "English"
+        }
+    ],
+    "translations": {
+        "de": {
+            "navigation_title": "Format Konverter",
+            "target_format": "Zielformat",
+            "convert": "Konvertieren",
+            "share": "Exportieren / Teilen",
+            "pick_source": "Auswaehlen",
+            "pick_file": "Datei waehlen",
+            "pick_photo": "Foto waehlen",
+            "drop_title": "Datei hier ablegen",
+            "drop_subtitle":
+                "JPG, PNG, HEIC, TIFF, BMP, SCN, DAE, USDZ, OBJ, STL",
+            "no_file": "Keine Datei",
+            "no_file_selected": "Keine Datei ausgewaehlt",
+            "pick_or_drop_file": "Waehle eine Datei oder ziehe sie hinein.",
+            "no_preview": "Keine Vorschau verfuegbar",
+            "settings": "Einstellungen",
+            "theme": "Theme",
+            "language": "Sprache",
+            "loaded_file": "Datei geladen: %@",
+            "finished_file": "Fertig: %@",
+            "save_to_photos": "In Fotos speichern",
+            "saved_to_photos": "In Fotos gespeichert: %@",
+            "photo_access_denied":
+                "Bitte erlaube den Zugriff auf Fotos, um Bilder zu speichern.",
+            "save_to_photos_failed":
+                "Bild konnte nicht in Fotos gespeichert werden.",
+            "unsupported_format": "Dieses Format wird nicht unterstuetzt.",
+            "invalid_conversion": "Diese Konvertierung ist nicht erlaubt.",
+            "cannot_read_file": "Datei konnte nicht gelesen werden.",
+            "conversion_failed": "Konvertierung fehlgeschlagen."
+        },
+        "en": {
+            "navigation_title": "Format Converter",
+            "target_format": "Target Format",
+            "convert": "Convert",
+            "share": "Export / Share",
+            "pick_source": "Choose",
+            "pick_file": "Pick File",
+            "pick_photo": "Pick Photo",
+            "drop_title": "Drop file here",
+            "drop_subtitle":
+                "JPG, PNG, HEIC, TIFF, BMP, SCN, DAE, USDZ, OBJ, STL",
+            "no_file": "No File",
+            "no_file_selected": "No file selected",
+            "pick_or_drop_file": "Choose a file or drop it here.",
+            "no_preview": "No preview available",
+            "settings": "Settings",
+            "theme": "Theme",
+            "language": "Language",
+            "loaded_file": "Loaded file: %@",
+            "finished_file": "Done: %@",
+            "save_to_photos": "Save to Photos",
+            "saved_to_photos": "Saved to Photos: %@",
+            "photo_access_denied": "Allow Photos access to save images.",
+            "save_to_photos_failed": "The image could not be saved to Photos.",
+            "unsupported_format": "This format is not supported.",
+            "invalid_conversion": "This conversion is not allowed.",
+            "cannot_read_file": "The file could not be read.",
+            "conversion_failed": "Conversion failed."
+        }
+    }
+}
