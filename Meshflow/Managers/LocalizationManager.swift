@@ -9,7 +9,6 @@ import Combine
 import Foundation
 
 enum AppTextKey: String {
-    case navigationTitle = "navigation_title"
     case targetFormat = "target_format"
     case convert = "convert"
     case share = "share"

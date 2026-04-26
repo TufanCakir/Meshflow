@@ -38,7 +38,6 @@ struct AppConfiguration: Decodable {
         ],
         translations: [
             "de": [
-                "navigation_title": "Format Konverter",
                 "target_format": "Zielformat",
                 "convert": "Konvertieren",
                 "share": "Exportieren / Teilen",
@@ -75,7 +74,6 @@ struct AppConfiguration: Decodable {
                 "conversion_failed": "Konvertierung fehlgeschlagen.",
             ],
             "en": [
-                "navigation_title": "Format Converter",
                 "target_format": "Target Format",
                 "convert": "Convert",
                 "share": "Export / Share",

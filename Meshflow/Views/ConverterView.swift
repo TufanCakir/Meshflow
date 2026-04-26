@@ -6,7 +6,6 @@
 //
 
 import ImageIO
-import Photos
 import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
@@ -28,7 +27,6 @@ struct ConverterView: View {
     @State private var conversionProgress = 0.0
     @State private var selectedDropAreaSource: DropAreaSource = .none
     @State private var message = ""
-    @State private var savedPhotoFileName: String?
 
     var body: some View {
         NavigationStack {
@@ -68,6 +66,21 @@ struct ConverterView: View {
                         || availableTargetFormats.isEmpty
                         || isConverting
                 )
+                .alert(
+                    localizationManager.text(.confirmConversionTitle),
+                    isPresented: $showConvertConfirmation
+                ) {
+                    Button(localizationManager.text(.continueAction)) {
+                        startConversion()
+                    }
+                    Button(
+                        localizationManager.text(.cancelAction),
+                        role: .cancel
+                    ) {
+                    }
+                } message: {
+                    Text(localizationManager.text(.confirmConversionMessage))
+                }
 
                 if isConverting {
                     VStack(alignment: .leading, spacing: 8) {
@@ -80,21 +93,6 @@ struct ConverterView: View {
                 }
 
                 if outputURL != nil {
-                    if canSaveOutputToPhotos {
-                        Button {
-                            Task {
-                                await saveOutputToPhotos()
-                            }
-                        } label: {
-                            Label(
-                                localizationManager.text(.saveToPhotos),
-                                systemImage: "photo.on.rectangle"
-                            )
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                    }
-
                     Button {
                         showShareSheet = true
                     } label: {
@@ -114,7 +112,6 @@ struct ConverterView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle(localizationManager.text(.navigationTitle))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Menu {
@@ -182,20 +179,6 @@ struct ConverterView: View {
             .onChange(of: selectedURL) {
                 selectDefaultTargetFormat()
             }
-            .confirmationDialog(
-                localizationManager.text(.confirmConversionTitle),
-                isPresented: $showConvertConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button(localizationManager.text(.continueAction)) {
-                    startConversion()
-                }
-
-                Button(localizationManager.text(.cancelAction), role: .cancel) {
-                }
-            } message: {
-                Text(localizationManager.text(.confirmConversionMessage))
-            }
             .photosPicker(
                 isPresented: $showPhotoPicker,
                 selection: $selectedPhotoItem,
@@ -218,7 +201,6 @@ struct ConverterView: View {
                 DocumentPicker { url in
                     selectedURL = copyToTemporaryFolder(url)
                     outputURL = nil
-                    savedPhotoFileName = nil
                     message = localizationManager.text(
                         .loadedFile,
                         url.lastPathComponent
@@ -234,45 +216,44 @@ struct ConverterView: View {
     }
 
     private var dropArea: some View {
-        ZStack {
+        VStack(spacing: 8) {
             RoundedRectangle(cornerRadius: 20)
                 .fill(.clear)
-
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(style: StrokeStyle(lineWidth: 2))
-
-            VStack {
-                Image(systemName: "tray.and.arrow.down")
-                    .font(.largeTitle)
-
-                Text(localizationManager.text(.dropTitle))
-                    .font(.headline)
-
-                Text(localizationManager.text(.dropSubtitle))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .allowsHitTesting(false)
-        }
-        .overlay {
-            VStack {
-                Spacer()
-
-                Picker(
-                    localizationManager.text(.pickSource),
-                    selection: $selectedDropAreaSource
-                ) {
-                    Text(localizationManager.text(.pickSource))
-                        .tag(DropAreaSource.none)
-                    Text(localizationManager.text(.pickFile))
-                        .tag(DropAreaSource.file)
-                    Text(localizationManager.text(.pickPhoto))
-                        .tag(DropAreaSource.photo)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(style: StrokeStyle(lineWidth: 2))
                 }
-                .pickerStyle(.menu)
+                .overlay {
+                    VStack(spacing: 6) {
+                        Image(systemName: "tray.and.arrow.down")
+                            .font(.largeTitle)
+
+                        Text(localizationManager.text(.dropTitle))
+                            .font(.headline)
+
+                        Text(localizationManager.text(.dropSubtitle))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .allowsHitTesting(false)
+                }
+                .frame(height: 120)
+
+            Picker(
+                localizationManager.text(.pickSource),
+                selection: $selectedDropAreaSource
+            ) {
+                Text(localizationManager.text(.pickSource))
+                    .tag(DropAreaSource.none)
+                Text(localizationManager.text(.pickFile))
+                    .tag(DropAreaSource.file)
+                Text(localizationManager.text(.pickPhoto))
+                    .tag(DropAreaSource.photo)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(RoundedRectangle(cornerRadius: 20))
+            .pickerStyle(.menu)
             .onChange(of: selectedDropAreaSource) {
                 switch selectedDropAreaSource {
                 case .none:
@@ -285,7 +266,6 @@ struct ConverterView: View {
 
                 selectedDropAreaSource = .none
             }
-            .padding()
         }
     }
 
@@ -340,18 +320,6 @@ struct ConverterView: View {
         FileFormat.availableTargets(for: selectedSourceFormat)
     }
 
-    private var outputFormat: FileFormat? {
-        guard let outputURL else {
-            return nil
-        }
-
-        return FileFormat.detect(from: outputURL)
-    }
-
-    private var canSaveOutputToPhotos: Bool {
-        outputFormat?.isImageFormat == true
-    }
-
     private func startConversion() {
         guard !isConverting else {
             return
@@ -379,7 +347,6 @@ struct ConverterView: View {
                 switch result {
                 case .success(let convertedURL):
                     outputURL = convertedURL
-                    savedPhotoFileName = nil
                     message = localizationManager.text(
                         .finishedFile,
                         convertedURL.lastPathComponent
@@ -450,7 +417,6 @@ struct ConverterView: View {
     private func updateSelection(with url: URL) {
         selectedURL = url
         outputURL = nil
-        savedPhotoFileName = nil
         message = localizationManager.text(
             .loadedFile,
             url.lastPathComponent
@@ -559,84 +525,8 @@ struct ConverterView: View {
         return nil
     }
 
-    private func saveOutputToPhotos() async {
-        guard let outputURL, canSaveOutputToPhotos else {
-            return
-        }
-
-        do {
-            try await requestPhotoLibraryAccess()
-            try await writeImageToPhotoLibrary(from: outputURL)
-
-            await MainActor.run {
-                savedPhotoFileName = outputURL.lastPathComponent
-                message = localizationManager.text(
-                    .savedToPhotos,
-                    outputURL.lastPathComponent
-                )
-            }
-        } catch PhotoLibrarySaveError.accessDenied {
-            await MainActor.run {
-                message = localizationManager.text(.photoAccessDenied)
-            }
-        } catch {
-            await MainActor.run {
-                message = localizationManager.text(.saveToPhotosFailed)
-            }
-        }
-    }
-
-    private func requestPhotoLibraryAccess() async throws {
-        let currentStatus = PHPhotoLibrary.authorizationStatus(for: .addOnly)
-
-        switch currentStatus {
-        case .authorized, .limited:
-            return
-        case .notDetermined:
-            let newStatus = await PHPhotoLibrary.requestAuthorization(
-                for: .addOnly
-            )
-            guard newStatus == .authorized || newStatus == .limited else {
-                throw PhotoLibrarySaveError.accessDenied
-            }
-        case .denied, .restricted:
-            throw PhotoLibrarySaveError.accessDenied
-        @unknown default:
-            throw PhotoLibrarySaveError.saveFailed
-        }
-    }
-
-    private func writeImageToPhotoLibrary(from fileURL: URL) async throws {
-        try await withCheckedThrowingContinuation {
-            (continuation: CheckedContinuation<Void, Error>) in
-            PHPhotoLibrary.shared().performChanges {
-                let creationRequest = PHAssetCreationRequest.forAsset()
-                creationRequest.addResource(
-                    with: .photo,
-                    fileURL: fileURL,
-                    options: nil
-                )
-            } completionHandler: { success, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else if success {
-                    continuation.resume()
-                } else {
-                    continuation.resume(
-                        throwing: PhotoLibrarySaveError.saveFailed
-                    )
-                }
-            }
-        }
-    }
-
     private func updateMessageForCurrentLanguage() {
-        if let savedPhotoFileName {
-            message = localizationManager.text(
-                .savedToPhotos,
-                savedPhotoFileName
-            )
-        } else if let outputURL {
+        if let outputURL {
             message = localizationManager.text(
                 .finishedFile,
                 outputURL.lastPathComponent
@@ -656,11 +546,6 @@ private enum DropAreaSource: Hashable {
     case none
     case file
     case photo
-}
-
-private enum PhotoLibrarySaveError: Error {
-    case accessDenied
-    case saveFailed
 }
 
 #Preview {
