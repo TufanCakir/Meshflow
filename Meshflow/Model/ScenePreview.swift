@@ -21,6 +21,6 @@ struct ScenePreview: UIViewRepresentable {
     }
 
     func updateUIView(_ view: SCNView, context: Context) {
-        view.scene = try? SCNScene(url: url, options: nil)
+        view.scene = ConverterService.loadPreviewScene(from: url)
     }
 }

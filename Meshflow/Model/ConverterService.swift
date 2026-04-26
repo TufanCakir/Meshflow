@@ -14,7 +14,9 @@ import UniformTypeIdentifiers
 
 final class ConverterService {
 
-    static func convert(inputURL: URL, targetFormat: FileFormat) throws -> URL {
+    nonisolated static func convert(inputURL: URL, targetFormat: FileFormat)
+        throws -> URL
+    {
         guard let sourceFormat = FileFormat.detect(from: inputURL) else {
             throw ConversionError.unsupportedFormat
         }
@@ -33,13 +35,14 @@ final class ConverterService {
                 outputURL: outputURL,
                 targetFormat: targetFormat
             )
-        } else if sourceFormat.isSceneFormat && targetFormat.isSceneFormat {
-            try convertSceneFile(inputURL: inputURL, outputURL: outputURL)
-        } else if sourceFormat.isSceneFormat && targetFormat.isModelExportFormat
+        } else if sourceFormat.isNativeSceneFormat
+            && targetFormat.isNativeSceneFormat
         {
-            try convertSceneToModelAsset(
+            try convertNativeScene(
                 inputURL: inputURL,
-                outputURL: outputURL
+                outputURL: outputURL,
+                sourceFormat: sourceFormat,
+                targetFormat: targetFormat
             )
         } else {
             throw ConversionError.invalidConversion
@@ -48,7 +51,15 @@ final class ConverterService {
         return outputURL
     }
 
-    private static func convertImage(
+    nonisolated static func loadPreviewScene(from inputURL: URL) -> SCNScene? {
+        guard let sourceFormat = FileFormat.detect(from: inputURL) else {
+            return nil
+        }
+
+        return try? loadScene(from: inputURL, sourceFormat: sourceFormat)
+    }
+
+    nonisolated private static func convertImage(
         inputURL: URL,
         outputURL: URL,
         targetFormat: FileFormat
@@ -80,40 +91,91 @@ final class ConverterService {
         }
     }
 
-    private static func convertSceneFile(inputURL: URL, outputURL: URL) throws {
-        let scene = try SCNScene(
-            url: inputURL,
-            options: sceneLoadingOptions(for: inputURL)
-        )
-        let success = scene.write(
-            to: outputURL,
-            options: nil,
-            delegate: nil,
-            progressHandler: nil
-        )
-
-        if !success {
-            throw ConversionError.conversionFailed
-        }
-    }
-
-    private static func convertSceneToModelAsset(
+    nonisolated private static func convertNativeScene(
         inputURL: URL,
-        outputURL: URL
+        outputURL: URL,
+        sourceFormat: FileFormat,
+        targetFormat: FileFormat
     ) throws {
-        guard MDLAsset.canExportFileExtension(outputURL.pathExtension) else {
+        switch targetFormat {
+        case .scn, .usdz:
+            let scene = try loadScene(
+                from: inputURL,
+                sourceFormat: sourceFormat
+            )
+            let success = scene.write(
+                to: outputURL,
+                options: nil,
+                delegate: nil,
+                progressHandler: nil
+            )
+
+            if !success {
+                throw ConversionError.conversionFailed
+            }
+        case .usd, .usda, .usdc:
+            let asset = try loadAsset(
+                from: inputURL,
+                sourceFormat: sourceFormat
+            )
+
+            guard MDLAsset.canExportFileExtension(outputURL.pathExtension)
+            else {
+                throw ConversionError.invalidConversion
+            }
+
+            try asset.export(to: outputURL)
+        default:
             throw ConversionError.invalidConversion
         }
-
-        let scene = try SCNScene(
-            url: inputURL,
-            options: sceneLoadingOptions(for: inputURL)
-        )
-        let asset = MDLAsset(scnScene: scene)
-        try asset.export(to: outputURL)
     }
 
-    private static func sceneLoadingOptions(
+    nonisolated private static func loadScene(
+        from inputURL: URL,
+        sourceFormat: FileFormat
+    ) throws -> SCNScene {
+        switch sourceFormat {
+        case .scn, .usdz:
+            return try SCNScene(
+                url: inputURL,
+                options: sceneLoadingOptions(for: inputURL)
+            )
+        case .usd, .usda, .usdc:
+            return SCNScene(
+                mdlAsset: try loadAsset(
+                    from: inputURL,
+                    sourceFormat: sourceFormat
+                )
+            )
+        default:
+            throw ConversionError.invalidConversion
+        }
+    }
+
+    nonisolated private static func loadAsset(
+        from inputURL: URL,
+        sourceFormat: FileFormat
+    ) throws -> MDLAsset {
+        switch sourceFormat {
+        case .scn, .usdz:
+            return MDLAsset(
+                scnScene: try loadScene(
+                    from: inputURL,
+                    sourceFormat: sourceFormat
+                )
+            )
+        case .usd, .usda, .usdc:
+            guard MDLAsset.canImportFileExtension(inputURL.pathExtension) else {
+                throw ConversionError.cannotReadFile
+            }
+
+            return MDLAsset(url: inputURL)
+        default:
+            throw ConversionError.invalidConversion
+        }
+    }
+
+    nonisolated private static func sceneLoadingOptions(
         for inputURL: URL
     ) -> [SCNSceneSource.LoadingOption: Any] {
         [

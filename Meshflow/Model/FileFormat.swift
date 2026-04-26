@@ -15,22 +15,22 @@ enum FileFormat: String, CaseIterable, Identifiable {
     case tiff
     case bmp
     case scn
-    case dae
+    case usd
+    case usda
+    case usdc
     case usdz
-    case obj
-    case stl
 
-    var id: String { rawValue }
+    nonisolated var id: String { rawValue }
 
-    var title: String {
+    nonisolated var title: String {
         rawValue.uppercased()
     }
 
-    var pathExtension: String {
+    nonisolated var pathExtension: String {
         rawValue
     }
 
-    var isImageFormat: Bool {
+    nonisolated var isImageFormat: Bool {
         switch self {
         case .jpg, .png, .heic, .tiff, .bmp:
             return true
@@ -39,25 +39,16 @@ enum FileFormat: String, CaseIterable, Identifiable {
         }
     }
 
-    var isSceneFormat: Bool {
+    nonisolated var isNativeSceneFormat: Bool {
         switch self {
-        case .scn, .dae, .usdz:
+        case .scn, .usd, .usda, .usdc, .usdz:
             return true
         default:
             return false
         }
     }
 
-    var isModelExportFormat: Bool {
-        switch self {
-        case .obj, .stl:
-            return true
-        default:
-            return false
-        }
-    }
-
-    var utType: UTType? {
+    nonisolated var utType: UTType? {
         switch self {
         case .jpg:
             return .jpeg
@@ -71,18 +62,19 @@ enum FileFormat: String, CaseIterable, Identifiable {
             return .bmp
         case .scn:
             return UTType(filenameExtension: "scn")
-        case .dae:
-            return UTType(filenameExtension: "dae")
+        case .usd:
+            return UTType(filenameExtension: "usd")
+        case .usda:
+            return UTType(filenameExtension: "usda")
+        case .usdc:
+            return UTType(filenameExtension: "usdc")
         case .usdz:
             return UTType(filenameExtension: "usdz")
-        case .obj:
-            return UTType(filenameExtension: "obj")
-        case .stl:
-            return UTType(filenameExtension: "stl")
         }
     }
 
-    static func availableTargets(for sourceFormat: FileFormat?) -> [FileFormat]
+    nonisolated static func availableTargets(for sourceFormat: FileFormat?)
+        -> [FileFormat]
     {
         guard let sourceFormat else {
             return []
@@ -92,17 +84,16 @@ enum FileFormat: String, CaseIterable, Identifiable {
             return allCases.filter { $0.isImageFormat && $0 != sourceFormat }
         }
 
-        if sourceFormat.isSceneFormat {
+        if sourceFormat.isNativeSceneFormat {
             return allCases.filter {
-                ($0.isSceneFormat || $0.isModelExportFormat)
-                    && $0 != sourceFormat
+                $0.isNativeSceneFormat && $0 != sourceFormat
             }
         }
 
         return []
     }
 
-    static func detect(from url: URL) -> FileFormat? {
+    nonisolated static func detect(from url: URL) -> FileFormat? {
         let ext = url.pathExtension.lowercased()
 
         switch ext {
@@ -118,14 +109,14 @@ enum FileFormat: String, CaseIterable, Identifiable {
             return .bmp
         case "scn":
             return .scn
-        case "dae":
-            return .dae
+        case "usd":
+            return .usd
+        case "usda":
+            return .usda
+        case "usdc":
+            return .usdc
         case "usdz":
             return .usdz
-        case "obj":
-            return .obj
-        case "stl":
-            return .stl
         default:
             return nil
         }
