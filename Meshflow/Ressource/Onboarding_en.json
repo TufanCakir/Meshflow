@@ -1,0 +1,22 @@
+{
+    "title": "Meshflow",
+    "subtitle": "File converter",
+    "sections": [
+        {
+            "title": "Fast 3D & Image Conversion",
+            "text": "Meshflow is your tool for extremely fast workflows..."
+        },
+        {
+            "title": "Preview, Review & Compare",
+            "text": "Maintain full control over your data..."
+        },
+        {
+            "title": "Fully Native & Optimized Workflow",
+            "text": "Developed with Swift and SwiftUI..."
+        },
+        {
+            "title": "History, Export & Share",
+            "text": "Meshflow makes continuing your work effortless..."
+        }
+    ]
+}

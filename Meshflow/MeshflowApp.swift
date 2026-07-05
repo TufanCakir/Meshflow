@@ -10,8 +10,15 @@ import SwiftUI
 @main
 struct MeshflowApp: App {
 
+    @AppStorage("hasSeenOnboarding")
+    private var hasSeenOnboarding = false
+
     @StateObject private var themeManager: ThemeManager
     @StateObject private var localizationManager: LocalizationManager
+    @StateObject private var conversionHistoryManager =
+        ConversionHistoryManager()
+    @StateObject private var storeViewModel = StoreViewModel()
+    @StateObject private var reviewPromptManager = ReviewPromptManager()
 
     init() {
         let configuration = AppConfiguration.load()
@@ -25,11 +32,27 @@ struct MeshflowApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ConverterView()
+            rootContent
                 .environmentObject(themeManager)
                 .environmentObject(localizationManager)
+                .environmentObject(conversionHistoryManager)
+                .environmentObject(storeViewModel)
+                .environmentObject(reviewPromptManager)
                 .environment(\.locale, localizationManager.locale)
                 .preferredColorScheme(themeManager.selectedTheme.colorScheme)
+        }
+    }
+
+    @ViewBuilder
+    private var rootContent: some View {
+        Group {
+            if hasSeenOnboarding {
+                RootView()
+            } else {
+                OnboardingView {
+                    hasSeenOnboarding = true
+                }
+            }
         }
     }
 }

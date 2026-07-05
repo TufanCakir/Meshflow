@@ -1,0 +1,185 @@
+{
+    "freeLimits": {
+        "dailyConversions": 5,
+        "dailyExports": 5,
+        "storageSlots": 5
+    },
+    "coinCosts": {
+        "conversion": 1,
+        "export": 1,
+        "storageSlot": 2
+    },
+    "products": [
+        {
+            "id": "free",
+            "kind": "free",
+            "displayNames": {
+                "de": "Kostenlos",
+                "en": "Free"
+            },
+            "subtitles": {
+                "de": "Tägliche Basis-Limits",
+                "en": "Daily basic limits"
+            },
+            "benefits": {
+                "de": [
+                    "5 Konvertierungen pro Tag",
+                    "5 Exporte pro Tag",
+                    "5 Speicherplätze im Verlauf"
+                ],
+                "en": [
+                    "5 conversions per day",
+                    "5 exports per day",
+                    "5 stored history items"
+                ]
+            }
+        },
+        {
+            "id": "premium_monthly",
+            "kind": "subscription",
+            "productID": "meshflow.premium.monthly",
+            "displayNames": {
+                "de": "Premium",
+                "en": "Premium"
+            },
+            "subtitles": {
+                "de": "Mehr Limits für regelmäßige Nutzung",
+                "en": "Higher limits for regular use"
+            },
+            "benefits": {
+                "de": [
+                    "Mehr tägliche Konvertierungen",
+                    "Mehr Exporte",
+                    "Mehr gespeicherte Ergebnisse"
+                ],
+                "en": [
+                    "More daily conversions",
+                    "More exports",
+                    "More stored results"
+                ]
+            }
+        },
+        {
+            "id": "ultimate_monthly",
+            "kind": "subscription",
+            "productID": "meshflow.ultimate.monthly",
+            "displayNames": {
+                "de": "Ultimate",
+                "en": "Ultimate"
+            },
+            "subtitles": {
+                "de": "Für große Workflows",
+                "en": "For larger workflows"
+            },
+            "benefits": {
+                "de": [
+                    "Sehr hohe Limits",
+                    "Mehr Speicherplätze",
+                    "Ideal für Batch-Konvertierung"
+                ],
+                "en": [
+                    "Very high limits",
+                    "More storage slots",
+                    "Ideal for batch conversion"
+                ]
+            }
+        },
+        {
+            "id": "lifetime",
+            "kind": "nonConsumable",
+            "productID": "meshflow.lifetime",
+            "displayNames": {
+                "de": "Lifetime",
+                "en": "Lifetime"
+            },
+            "subtitles": {
+                "de": "Einmal kaufen, dauerhaft nutzen",
+                "en": "Buy once, use permanently"
+            },
+            "benefits": {
+                "de": [
+                    "Kein Abo",
+                    "Dauerhafte Freischaltung",
+                    "Mehr Speicher und Konvertierungen"
+                ],
+                "en": [
+                    "No subscription",
+                    "Permanent unlock",
+                    "More storage and conversions"
+                ]
+            }
+        },
+        {
+            "id": "coins_small",
+            "kind": "consumable",
+            "productID": "meshflow.coins.small",
+            "coinAmount": 25,
+            "displayNames": {
+                "de": "25 Coins",
+                "en": "25 Coins"
+            },
+            "subtitles": {
+                "de": "Einmaliges Coin-Paket",
+                "en": "One-time coin pack"
+            },
+            "benefits": {
+                "de": [
+                    "Kein Abo",
+                    "Mehr Konvertierungen oder Exporte kaufen"
+                ],
+                "en": [
+                    "No subscription",
+                    "Buy extra conversions or exports"
+                ]
+            }
+        },
+        {
+            "id": "coins_medium",
+            "kind": "consumable",
+            "productID": "meshflow.coins.medium",
+            "coinAmount": 50,
+            "displayNames": {
+                "de": "50 Coins",
+                "en": "50 Coins"
+            },
+            "subtitles": {
+                "de": "Beliebtes Coin-Paket",
+                "en": "Popular coin pack"
+            },
+            "benefits": {
+                "de": [
+                    "Kein Abo",
+                    "Die perfekte Balance für mittlere Projekte"
+                ],
+                "en": [
+                    "No subscription",
+                    "The perfect balance for medium projects"
+                ]
+            }
+        },
+        {
+            "id": "coins_large",
+            "kind": "consumable",
+            "productID": "meshflow.coins.large",
+            "coinAmount": 100,
+            "displayNames": {
+                "de": "100 Coins",
+                "en": "100 Coins"
+            },
+            "subtitles": {
+                "de": "Großes Coin-Paket",
+                "en": "Large coin pack"
+            },
+            "benefits": {
+                "de": [
+                    "Kein Abo",
+                    "Mehr Reserven für große Batches"
+                ],
+                "en": [
+                    "No subscription",
+                    "More reserves for large batches"
+                ]
+            }
+        }
+    ]
+}

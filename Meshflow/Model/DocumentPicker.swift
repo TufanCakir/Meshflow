@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 
 struct DocumentPicker: UIViewControllerRepresentable {
 
-    var onPick: (URL) -> Void
+    var onPick: ([URL]) -> Void
 
     func makeUIViewController(context: Context)
         -> UIDocumentPickerViewController
@@ -20,7 +20,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
         let picker = UIDocumentPickerViewController(
             forOpeningContentTypes: types
         )
-        picker.allowsMultipleSelection = false
+        picker.allowsMultipleSelection = true
         picker.delegate = context.coordinator
         return picker
     }
@@ -35,9 +35,9 @@ struct DocumentPicker: UIViewControllerRepresentable {
     }
 
     final class Coordinator: NSObject, UIDocumentPickerDelegate {
-        let onPick: (URL) -> Void
+        let onPick: ([URL]) -> Void
 
-        init(onPick: @escaping (URL) -> Void) {
+        init(onPick: @escaping ([URL]) -> Void) {
             self.onPick = onPick
         }
 
@@ -45,8 +45,7 @@ struct DocumentPicker: UIViewControllerRepresentable {
             _ controller: UIDocumentPickerViewController,
             didPickDocumentsAt urls: [URL]
         ) {
-            guard let url = urls.first else { return }
-            onPick(url)
+            onPick(urls)
         }
     }
 }

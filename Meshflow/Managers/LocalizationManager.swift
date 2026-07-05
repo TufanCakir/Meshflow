@@ -2,7 +2,7 @@
 //  LocalizationManager.swift
 //  Meshwork
 //
-//  Created by Codex on 27.04.26.
+//  Created by Tufan Cakir on 26.04.26.
 //
 
 import Combine
@@ -12,6 +12,7 @@ enum AppTextKey: String {
     case targetFormat = "target_format"
     case convert = "convert"
     case share = "share"
+    case saveToFiles = "save_to_files"
     case pickSource = "pick_source"
     case pickFile = "pick_file"
     case pickPhoto = "pick_photo"
@@ -27,6 +28,7 @@ enum AppTextKey: String {
     case cancelAction = "cancel_action"
     case converting = "converting"
     case settings = "settings"
+    case rateApp = "rate_app"
     case theme = "theme"
     case language = "language"
     case loadedFile = "loaded_file"
@@ -35,6 +37,30 @@ enum AppTextKey: String {
     case savedToPhotos = "saved_to_photos"
     case photoAccessDenied = "photo_access_denied"
     case saveToPhotosFailed = "save_to_photos_failed"
+    case history = "history"
+    case clearHistory = "clear_history"
+    case emptyHistory = "empty_history"
+    case sourceToTarget = "source_to_target"
+    case loadResult = "load_result"
+    case fileInfo = "file_info"
+    case fileName = "file_name"
+    case fileFormat = "file_format"
+    case fileSize = "file_size"
+    case unknownFormat = "unknown_format"
+    case recommendedTarget = "recommended_target"
+    case imageRecommendation = "image_recommendation"
+    case sceneRecommendation = "scene_recommendation"
+    case selectedFiles = "selected_files"
+    case convertedFiles = "converted_files"
+    case removeFile = "remove_file"
+    case clearSelection = "clear_selection"
+    case results = "results"
+    case failedConversions = "failed_conversions"
+    case beforeAfter = "before_after"
+    case beforeSize = "before_size"
+    case afterSize = "after_size"
+    case exportFailed = "export_failed"
+    case exportFinished = "export_finished"
     case unsupportedFormat = "unsupported_format"
     case invalidConversion = "invalid_conversion"
     case cannotReadFile = "cannot_read_file"

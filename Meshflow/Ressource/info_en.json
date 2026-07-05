@@ -1,0 +1,28 @@
+{
+    "title": "Meshflow",
+    "subtitle":
+        "File converter for images & 3D formats. Fast. Local. Versatile.",
+
+    "sections": [
+        {
+            "title": "Fast 3D & Image Conversion",
+            "text":
+                "Meshflow is your tool for extremely fast workflows. Convert images (JPG, PNG, HEIC, TIFF, BMP) and complex 3D files (SCN, USD, USDA, USDC, USDZ) in no time. Select individual files or multiple photos at once to seamlessly convert them into the right target format."
+        },
+        {
+            "title": "Preview, Review & Compare",
+            "text":
+                "Maintain full control over your data. Use the built-in preview with horizontal scrolling to review your selection beforehand. Meshflow shows you detailed file info, smart format recommendations, and instantly calculates before/after file sizes for maximum transparency."
+        },
+        {
+            "title": "Fully Native & Optimized Workflow",
+            "text":
+                "Developed with Swift and SwiftUI, Meshflow is perfectly tailored to iOS. Manage your file selection flexibly, remove individual items, or clear the list completely. After the process, a structured results list provides insights into successful or failed conversions."
+        },
+        {
+            "title": "History, Export & Share",
+            "text":
+                "Meshflow makes continuing your work effortless. Access earlier conversions at any time via the integrated history. Thanks to native system integration, you can export and share your finished images and 3D scenes instantly and without detours."
+        }
+    ]
+}
