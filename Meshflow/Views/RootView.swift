@@ -20,7 +20,7 @@ struct RootView: View {
 
             SubscriptionView()
                 .tabItem {
-                    Label("Meshflow Pro", systemImage: "cube")
+                    Label("Meshflow Pro", systemImage: "square.stack.3d.up")
                 }
 
             NavigationStack {

@@ -11,51 +11,49 @@ struct SubscriptionView: View {
 
     @EnvironmentObject private var storeViewModel: StoreViewModel
     @EnvironmentObject private var localizationManager: LocalizationManager
-    // HIER: Binde den ThemeManager ein
     @EnvironmentObject private var themeManager: ThemeManager
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    usageSummary
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                usageSummary
 
-                    ForEach(storeViewModel.configuration.products) {
-                        definition in
-                        productCard(for: definition)
-                    }
-
-                    if !storeViewModel.statusMessage.isEmpty {
-                        Text(storeViewModel.statusMessage)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
+                ForEach(storeViewModel.configuration.products) { definition in
+                    productCard(for: definition)
                 }
-                .padding()
-            }
-            .navigationTitle("Meshflow Pro")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Restore") {
-                        Task {
-                            await storeViewModel.restorePurchases()
-                        }
-                    }
+
+                if !storeViewModel.statusMessage.isEmpty {
+                    Text(storeViewModel.statusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
-            .task {
-                await storeViewModel.loadProducts()
+            .padding()
+        }
+        .navigationTitle("Meshflow Pro")
+        // Falls die View als eigenständiger Tab aufgerufen wird, bleibt das Restore-Inhalt erhalten
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Restore") {
+                    Task {
+                        await storeViewModel.restorePurchases()
+                    }
+                }
             }
         }
-        // HIER: Erzwingt das gewählte Color Scheme für die gesamte View
-        // (Wichtig, damit der Cutout-Effekt des Münz-Symbols nahtlos mitswitcht)
+        .task {
+            await storeViewModel.loadProducts()
+        }
+        // LÖSUNG: Zwingt den Hintergrund der ScrollView, sich an die Systemfarbe
+        // des aktuell ausgewählten ColorSchemes anzupassen.
+        .background(Color(.systemGroupedBackground))
+        // Setzt das ColorScheme direkt auf die finale View
         .colorScheme(themeManager.selectedTheme.colorScheme ?? .light)
     }
 
     private var usageSummary: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                // Das Münz-Symbol holt sich nun automatisch das korrekte Theme aus der Environment
                 CoinStackSymbol()
                     .frame(width: 24, height: 24)
 
@@ -84,7 +82,11 @@ struct SubscriptionView: View {
             }
         }
         .padding(12)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+        // Nutzen von secondarySystemGroupedBackground sorgt für den edlen Platten-Look auf dem Hintergrund
+        .background(
+            Color(.secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 8)
+        )
     }
 
     private func usagePill(title: String, value: String) -> some View {
@@ -152,14 +154,12 @@ struct SubscriptionView: View {
                             definition.kind == .consumable
                                 ? "Buy Coins" : "Unlock"
                         )
-                        // Textfarbe im Button explizit auf Weiß/Schwarz-Invertierung setzen
                         .foregroundStyle(
                             themeManager.selectedTheme.id == "dark"
                                 ? .black : .white
                         )
                     } icon: {
                         if definition.kind == .consumable {
-                            // Die Münze bekommt hier eine feste Farbe, damit sie auf dem Button knallt
                             CoinStackSymbol()
                                 .frame(width: 18, height: 18)
                         } else {
@@ -173,19 +173,24 @@ struct SubscriptionView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                // HIER: Macht den Button im Light Mode Schwarz und im Dark Mode Weiß
                 .tint(.primary)
             }
         }
         .padding(12)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+        // Auch hier die korrekte, mitswitchende Hintergrund-Farbe für die Cards verwenden
+        .background(
+            Color(.secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 8)
+        )
     }
 }
 
 #Preview {
-    SubscriptionView()
-        .environmentObject(StoreViewModel(configuration: .fallback))
-        .environmentObject(LocalizationManager(configuration: .fallback))
-        // HIER: Auch im Preview den ThemeManager übergeben, damit es nicht crasht
-        .environmentObject(ThemeManager(configuration: .fallback))
+    // Für das Preview packen wir es in einen NavigationStack, damit wir das Design mit Toolbar sehen
+    NavigationStack {
+        SubscriptionView()
+    }
+    .environmentObject(StoreViewModel(configuration: .fallback))
+    .environmentObject(LocalizationManager(configuration: .fallback))
+    .environmentObject(ThemeManager(configuration: .fallback))
 }

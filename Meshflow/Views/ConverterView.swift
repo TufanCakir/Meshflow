@@ -225,7 +225,7 @@ struct ConverterView: View {
             Button {
                 showSubscription = true
             } label: {
-                Label("Abo & Coins", systemImage: "circle.hexagongrid.fill")
+                Label("Abo & Coins", systemImage: "square.stack.3d.up")
             }
 
             Button {
