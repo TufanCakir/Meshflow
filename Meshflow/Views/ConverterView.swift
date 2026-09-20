@@ -221,56 +221,9 @@ struct ConverterView: View {
                         )
                     }
                 }
-
-                settingsMenu
             }
         }
     }
-
-    private var settingsMenu: some View {
-        Menu {
-            Button {
-                showSubscription = true
-            } label: {
-                Label("Abo & Coins", systemImage: "square.stack.3d.up")
-            }
-
-            Button {
-                requestReview()
-            } label: {
-                Label(
-                    localizationManager.text(.rateApp),
-                    systemImage: "star.bubble"
-                )
-            }
-
-            Picker(
-                localizationManager.text(.theme),
-                selection: $themeManager.selectedThemeID
-            ) {
-                ForEach(themeManager.themes) { theme in
-                    Text(localizationManager.themeTitle(for: theme)).tag(
-                        theme.id
-                    )
-                }
-            }
-
-            Picker(
-                localizationManager.text(.language),
-                selection: $localizationManager.selectedLanguageID
-            ) {
-                ForEach(localizationManager.languages) { language in
-                    Text(language.displayName).tag(language.id)
-                }
-            }
-        } label: {
-            Label(
-                localizationManager.text(.settings),
-                systemImage: "paintbrush"
-            )
-        }
-    }
-
     private var dropArea: some View {
         VStack(spacing: 8) {
             RoundedRectangle(cornerRadius: 20)

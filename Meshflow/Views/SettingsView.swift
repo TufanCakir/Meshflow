@@ -1,54 +1,27 @@
-//
-//  SettingsView.swift
-//  Meshflow
-//
-//  Created by Tufan Cakir on 18.12.25.
-//
-
 import SwiftUI
 
 struct SettingsView: View {
-
     @EnvironmentObject private var themeManager: ThemeManager
     @EnvironmentObject private var localizationManager: LocalizationManager
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.openURL) private var openURL
+
+    private let viewModel = SettingsViewModel()
 
     var body: some View {
         Form {
-            purchaseSection
             languageSection
             themeSection
             aboutSection
         }
         .navigationTitle(localizationManager.text(.settings))
         .navigationBarTitleDisplayMode(.inline)
-        .scrollDismissesKeyboard(.interactively)
         .preferredColorScheme(themeManager.selectedTheme.colorScheme)
     }
 }
 
-// MARK: - Sections
-
 extension SettingsView {
-
-    fileprivate var purchaseSection: some View {
-        Section(
-            localizationManager.selectedLanguageID == "de" ? "Abo" : "Plans"
-        ) {
-            NavigationLink {
-                SubscriptionView()
-            } label: {
-                Label(
-                    localizationManager.selectedLanguageID == "de"
-                        ? "Abo & Einmalkauf"
-                        : "Plans & one-time purchase",
-                    systemImage: "sparkles"
-                )
-            }
-        }
-    }
-
     fileprivate var languageSection: some View {
         Section(localizationManager.text(.language)) {
             Picker(
@@ -67,67 +40,74 @@ extension SettingsView {
     fileprivate var themeSection: some View {
         Section(localizationManager.text(.theme)) {
             ForEach(themeManager.themes) { theme in
-                // LÖSUNG: Kein Button-Objekt mehr! Ein einfaches HStack verhindert,
-                // dass SwiftUI die Klick-Eigenschaften der Form-Rows korrumpiert.
-                HStack {
-                    Image(systemName: icon(for: theme.id))
-                        .frame(width: 28)
-                        .foregroundStyle(.primary)
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(localizationManager.themeTitle(for: theme))
-                            .font(.body)
-                            .foregroundStyle(.primary)
-
-                        Text(description(for: theme.id))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer()
-
-                    if theme.id == themeManager.selectedThemeID {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.blue)
-                    }
-                }
-                .contentShape(Rectangle())
-                // Die Geste liegt nun direkt auf der Row, genau wie bei nativen System-Einstellungen
-                .onTapGesture {
+                Button {
                     changeTheme(theme.id)
+                } label: {
+                    HStack {
+                        Image(systemName: icon(for: theme.id))
+                            .frame(width: 28)
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(localizationManager.themeTitle(for: theme))
+                                .foregroundStyle(.primary)
+                            Text(description(for: theme.id))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        if theme.id == themeManager.selectedThemeID {
+                            Image(systemName: "checkmark")
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.tint)
+                        }
+                    }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(
+                    theme.id == themeManager.selectedThemeID ? .isSelected : []
+                )
             }
         }
     }
 
     fileprivate var aboutSection: some View {
-        Section(
-            localizationManager.selectedLanguageID == "de" ? "Über" : "About"
-        ) {
+        Section(isGerman ? "Über" : "About") {
+            Button {
+                openURL(viewModel.reviewURL)
+            } label: {
+                Label(localizationManager.text(.rateApp), systemImage: "star")
+            }
+
             NavigationLink {
                 InfoView()
             } label: {
                 Label("Meshflow", systemImage: "info.circle")
             }
 
-            Link(
-                localizationManager.selectedLanguageID == "de"
-                    ? "Nutzungsbedingungen"
-                    : "Terms of Use",
-                destination: URL(
-                    string:
-                        "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
-                )!
-            )
+            Link(destination: viewModel.termsURL) {
+                Label(
+                    isGerman ? "Nutzungsbedingungen" : "Terms of Use",
+                    systemImage: "doc.text"
+                )
+            }
 
-            Label(Bundle.main.appVersionString, systemImage: "number")
+            LabeledContent {
+                Text(Bundle.main.appVersionString)
+                    .foregroundStyle(.secondary)
+            } label: {
+                Label(isGerman ? "App-Version" : "App Version", systemImage: "number")
+            }
         }
     }
 }
 
-// MARK: - Helpers
-
 extension SettingsView {
+    fileprivate var isGerman: Bool {
+        localizationManager.selectedLanguageID == "de"
+    }
 
     fileprivate func changeTheme(_ id: String) {
         if reduceMotion {
@@ -151,8 +131,6 @@ extension SettingsView {
     }
 
     fileprivate func description(for id: String) -> String {
-        let isGerman = localizationManager.selectedLanguageID == "de"
-
         switch id {
         case "light":
             return isGerman ? "Heller Modus" : "Light mode"
@@ -164,7 +142,15 @@ extension SettingsView {
     }
 }
 
-// MARK: - Bundle Version
+private struct SettingsViewModel {
+    let reviewURL = URL(
+        string: "https://apps.apple.com/app/id6763824235?action=write-review"
+    )!
+
+    let termsURL = URL(
+        string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+    )!
+}
 
 extension Bundle {
     fileprivate var appVersionString: String {
@@ -173,18 +159,16 @@ extension Bundle {
 
         switch (version, build) {
         case (let version?, let build?):
-            return "Version \(version) (\(build))"
+            return "\(version) (\(build))"
         case (let version?, nil):
-            return "Version \(version)"
+            return version
         case (nil, let build?):
-            return "Build \(build)"
+            return build
         default:
-            return "Version"
+            return "—"
         }
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     let configuration = AppConfiguration.fallback
@@ -192,8 +176,6 @@ extension Bundle {
     NavigationStack {
         SettingsView()
             .environmentObject(ThemeManager(configuration: configuration))
-            .environmentObject(
-                LocalizationManager(configuration: configuration)
-            )
+            .environmentObject(LocalizationManager(configuration: configuration))
     }
 }
