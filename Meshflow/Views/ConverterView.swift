@@ -19,7 +19,7 @@ struct ConverterView: View {
     @EnvironmentObject private var reviewPromptManager: ReviewPromptManager
     @Environment(\.requestReview) private var requestReview
 
-    @StateObject private var viewModel = ConverterViewModel()
+    @ObservedObject var viewModel: ConverterViewModel
 
     @State private var showPicker = false
     @State private var showShareSheet = false
@@ -93,12 +93,19 @@ struct ConverterView: View {
                     viewModel.selectedPhotoItems = []
                 }
             }
-            .sheet(isPresented: $showPicker) {
-                DocumentPicker { urls in
+            .fileImporter(
+                isPresented: $showPicker,
+                allowedContentTypes: FileFormat.allCases.compactMap(\.utType),
+                allowsMultipleSelection: true
+            ) { result in
+                switch result {
+                case .success(let urls):
                     viewModel.updateSelection(
                         with: urls.map(viewModel.copyToTemporaryFolder),
                         localizationManager: localizationManager
                     )
+                case .failure(let error):
+                    viewModel.message = error.localizedDescription
                 }
             }
             .sheet(isPresented: $showShareSheet) {
@@ -919,7 +926,7 @@ private enum DropAreaSource: Hashable {
 }
 
 #Preview {
-    ConverterView()
+    ConverterView(viewModel: ConverterViewModel())
         .environmentObject(ThemeManager(configuration: .fallback))
         .environmentObject(LocalizationManager(configuration: .fallback))
         .environmentObject(ConversionHistoryManager())

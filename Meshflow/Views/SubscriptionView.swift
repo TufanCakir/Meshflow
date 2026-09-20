@@ -5,50 +5,71 @@
 //  Created by Tufan Cakir on 26.04.26.
 //
 
+import StoreKit
 import SwiftUI
 
 struct SubscriptionView: View {
-
     @EnvironmentObject private var storeViewModel: StoreViewModel
     @EnvironmentObject private var localizationManager: LocalizationManager
     @EnvironmentObject private var themeManager: ThemeManager
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                usageSummary
-
-                ForEach(storeViewModel.configuration.products) { definition in
-                    productCard(for: definition)
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    usageSummary
+                    nativeStore
                 }
-
-                if !storeViewModel.statusMessage.isEmpty {
-                    Text(storeViewModel.statusMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
+                .padding()
             }
-            .padding()
-        }
-        .navigationTitle("Meshflow Pro")
-        // Falls die View als eigenständiger Tab aufgerufen wird, bleibt das Restore-Inhalt erhalten
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Restore") {
-                    Task {
-                        await storeViewModel.restorePurchases()
-                    }
-                }
-            }
+            .navigationTitle("Meshflow Pro")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarMinimizationBehavior(.onScrollDown, for: .navigationBar)
+            .toolbarMinimizationRestoration(.atScrollEdge, for: .navigationBar)
+            .background(Color(.systemGroupedBackground))
+            .preferredColorScheme(themeManager.selectedTheme.colorScheme)
         }
         .task {
             await storeViewModel.loadProducts()
         }
-        // LÖSUNG: Zwingt den Hintergrund der ScrollView, sich an die Systemfarbe
-        // des aktuell ausgewählten ColorSchemes anzupassen.
-        .background(Color(.systemGroupedBackground))
-        // Setzt das ColorScheme direkt auf die finale View
-        .colorScheme(themeManager.selectedTheme.colorScheme ?? .light)
+    }
+
+    private var productIDs: [String] {
+        storeViewModel.configuration.products.compactMap(\.productID)
+    }
+
+    private var nativeStore: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(isGerman ? "Produkte" : "Products")
+                .font(.headline)
+
+            StoreView(ids: productIDs, prefersPromotionalIcon: true) { product in
+                StoreProductIcon(productID: product.id)
+            }
+            .productViewStyle(.regular)
+            .productDescription(.visible)
+            .productIconBorder()
+            .storeButton(.visible, for: .restorePurchases)
+
+            Text(
+                isGerman
+                    ? "Preise, Beschreibungen und Käufe werden sicher vom App Store bereitgestellt."
+                    : "Prices, descriptions, and purchases are securely provided by the App Store."
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+
+            if !storeViewModel.statusMessage.isEmpty {
+                Text(storeViewModel.statusMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(16)
+        .background(
+            Color(.secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 16)
+        )
     }
 
     private var usageSummary: some View {
@@ -57,140 +78,88 @@ struct SubscriptionView: View {
                 CoinStackSymbol()
                     .frame(width: 24, height: 24)
 
-                Text("Coins")
+                Text(isGerman ? "Guthaben" : "Balance")
                     .font(.headline)
 
                 Spacer()
 
                 Text("\(storeViewModel.coinBalance)")
                     .font(.title3.weight(.semibold))
+                    .contentTransition(.numericText())
             }
 
             HStack(spacing: 12) {
-                usagePill(
-                    title: "Convert",
+                UsageValue(
+                    title: isGerman ? "Konvertieren" : "Convert",
                     value: "\(storeViewModel.remainingFreeConversions)"
                 )
-                usagePill(
-                    title: "Export",
+                UsageValue(
+                    title: isGerman ? "Exportieren" : "Export",
                     value: "\(storeViewModel.remainingFreeExports)"
                 )
-                usagePill(
-                    title: "Storage",
+                UsageValue(
+                    title: isGerman ? "Speicher" : "Storage",
                     value: "\(storeViewModel.storageSlots)"
                 )
             }
         }
-        .padding(12)
-        // Nutzen von secondarySystemGroupedBackground sorgt für den edlen Platten-Look auf dem Hintergrund
+        .padding(16)
         .background(
             Color(.secondarySystemGroupedBackground),
-            in: RoundedRectangle(cornerRadius: 8)
+            in: RoundedRectangle(cornerRadius: 16)
         )
     }
 
-    private func usagePill(title: String, value: String) -> some View {
+    private var isGerman: Bool {
+        localizationManager.selectedLanguageID == "de"
+    }
+}
+
+private struct UsageValue: View {
+    let title: String
+    let value: String
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
             Text(value)
                 .font(.headline)
+                .contentTransition(.numericText())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+}
 
-    private func productCard(for definition: StoreProductDefinition)
-        -> some View
-    {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(
-                        definition.displayName(
-                            languageID: localizationManager.selectedLanguageID,
-                            fallbackLanguageID: "en"
-                        )
-                    )
-                    .font(.headline)
+private struct StoreProductIcon: View {
+    let productID: String
 
-                    Text(
-                        definition.subtitle(
-                            languageID: localizationManager.selectedLanguageID,
-                            fallbackLanguageID: "en"
-                        )
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                }
+    var body: some View {
+        Image(systemName: symbolName)
+            .font(.title2)
+            .foregroundStyle(.tint)
+            .frame(width: 44, height: 44)
+            .background(.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+    }
 
-                Spacer()
-
-                Text(storeViewModel.priceText(for: definition))
-                    .font(.subheadline.weight(.semibold))
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(
-                    definition.localizedBenefits(
-                        languageID: localizationManager.selectedLanguageID,
-                        fallbackLanguageID: "en"
-                    ),
-                    id: \.self
-                ) { benefit in
-                    Label(benefit, systemImage: "checkmark.circle")
-                        .font(.caption)
-                }
-            }
-
-            if definition.kind != .free {
-                Button {
-                    Task {
-                        await storeViewModel.purchase(definition)
-                    }
-                } label: {
-                    Label {
-                        Text(
-                            definition.kind == .consumable
-                                ? "Buy Coins" : "Unlock"
-                        )
-                        .foregroundStyle(
-                            themeManager.selectedTheme.id == "dark"
-                                ? .black : .white
-                        )
-                    } icon: {
-                        if definition.kind == .consumable {
-                            CoinStackSymbol()
-                                .frame(width: 18, height: 18)
-                        } else {
-                            Image(systemName: "lock.open")
-                                .foregroundStyle(
-                                    themeManager.selectedTheme.id == "dark"
-                                        ? .black : .white
-                                )
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.primary)
-            }
+    private var symbolName: String {
+        if productID.contains("coins") {
+            return "bitcoinsign.circle.fill"
         }
-        .padding(12)
-        // Auch hier die korrekte, mitswitchende Hintergrund-Farbe für die Cards verwenden
-        .background(
-            Color(.secondarySystemGroupedBackground),
-            in: RoundedRectangle(cornerRadius: 8)
-        )
+
+        if productID.contains("lifetime") {
+            return "infinity.circle.fill"
+        }
+
+        return "sparkles"
     }
 }
 
 #Preview {
-    // Für das Preview packen wir es in einen NavigationStack, damit wir das Design mit Toolbar sehen
-    NavigationStack {
-        SubscriptionView()
-    }
-    .environmentObject(StoreViewModel(configuration: .fallback))
-    .environmentObject(LocalizationManager(configuration: .fallback))
-    .environmentObject(ThemeManager(configuration: .fallback))
+    SubscriptionView()
+        .environmentObject(StoreViewModel(configuration: .fallback))
+        .environmentObject(LocalizationManager(configuration: .fallback))
+        .environmentObject(ThemeManager(configuration: .fallback))
 }

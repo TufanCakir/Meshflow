@@ -216,19 +216,15 @@ final class ConverterViewModel: ObservableObject {
         providers: [NSItemProvider],
         localizationManager: LocalizationManager
     ) -> Bool {
-        guard let provider = providers.first else { return false }
-        provider.loadItem(
-            forTypeIdentifier: UTType.fileURL.identifier,
-            options: nil
-        ) {
-            [weak self]
-            item,
-            _ in
-            guard
-                let data = item as? Data,
-                let url = URL(dataRepresentation: data, relativeTo: nil),
-                let self
-            else { return }
+        guard
+            let provider = providers.first,
+            provider.canLoadObject(ofClass: NSURL.self)
+        else {
+            return false
+        }
+
+        provider.loadObject(ofClass: NSURL.self) { [weak self] object, _ in
+            guard let url = object as? URL, let self else { return }
 
             Task { @MainActor [self] in
                 self.updateSelection(
