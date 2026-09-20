@@ -25,8 +25,8 @@ struct CoinStackSymbol: View {
 
     var body: some View {
         GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
+            let w = validDimension(geo.size.width)
+            let h = validDimension(geo.size.height)
 
             // Proportionen der Münzstapel definieren
             let stackW = w * 0.58
@@ -47,6 +47,11 @@ struct CoinStackSymbol: View {
         // Wendet das ColorScheme deines ThemeManagers direkt an
         .colorScheme(themeManager.selectedTheme.colorScheme ?? .light)
     }
+
+    private func validDimension(_ value: CGFloat) -> CGFloat {
+        guard value.isFinite, value > 0 else { return 1 }
+        return value
+    }
 }
 
 // Hilfs-Komponente für die geschichteten Münzen eines Stapels
@@ -57,8 +62,8 @@ private struct CoinStack: View {
 
     var body: some View {
         GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
+            let w = validDimension(geo.size.width)
+            let h = validDimension(geo.size.height)
 
             // Berechnungen für die 3D-Stauchung
             let coinH = h * 0.32
@@ -84,6 +89,11 @@ private struct CoinStack: View {
                 }
             }
         }
+    }
+
+    private func validDimension(_ value: CGFloat) -> CGFloat {
+        guard value.isFinite, value > 0 else { return 1 }
+        return value
     }
 }
 

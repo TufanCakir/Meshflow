@@ -13,19 +13,36 @@ struct SubscriptionView: View {
     @EnvironmentObject private var localizationManager: LocalizationManager
     @EnvironmentObject private var themeManager: ThemeManager
 
+    @State private var selectedSection: StoreSection = .subscriptions
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    usageSummary
-                    nativeStore
+            VStack(spacing: 16) {
+                usageSummary
+                    .padding(.horizontal)
+
+                Picker(
+                    isGerman ? "Shop-Bereich" : "Store Section",
+                    selection: $selectedSection
+                ) {
+                    Text(isGerman ? "Abos" : "Subscriptions")
+                        .tag(StoreSection.subscriptions)
+                    Text(isGerman ? "Einmalkäufe" : "One-Time")
+                        .tag(StoreSection.oneTimePurchases)
                 }
-                .padding()
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+
+                switch selectedSection {
+                case .subscriptions:
+                    subscriptionStore
+                case .oneTimePurchases:
+                    purchaseStore
+                }
             }
+            .padding(.top)
             .navigationTitle("Meshflow Pro")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarMinimizationBehavior(.onScrollDown, for: .navigationBar)
-            .toolbarMinimizationRestoration(.atScrollEdge, for: .navigationBar)
             .background(Color(.systemGroupedBackground))
             .preferredColorScheme(themeManager.selectedTheme.colorScheme)
         }
@@ -34,42 +51,90 @@ struct SubscriptionView: View {
         }
     }
 
-    private var productIDs: [String] {
-        storeViewModel.configuration.products.compactMap(\.productID)
+    private var nonSubscriptionProducts: [Product] {
+        storeViewModel.configuration.products.compactMap { definition in
+            guard
+                definition.kind == .nonConsumable
+                    || definition.kind == .consumable,
+                let productID = definition.productID
+            else {
+                return nil
+            }
+
+            return storeViewModel.productsByID[productID]
+        }
     }
 
-    private var nativeStore: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(isGerman ? "Produkte" : "Products")
-                .font(.headline)
+    private var subscriptionStore: some View {
+        SubscriptionStoreView(
+            groupID: storeViewModel.configuration.subscriptionGroupID
+        )
+        .storeButton(.visible, for: .restorePurchases)
+    }
 
-            StoreView(ids: productIDs, prefersPromotionalIcon: true) { product in
-                StoreProductIcon(productID: product.id)
-            }
-            .productViewStyle(.regular)
-            .productDescription(.visible)
-            .productIconBorder()
-            .storeButton(.visible, for: .restorePurchases)
+    private var purchaseStore: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                if storeViewModel.isLoading || !storeViewModel.hasLoadedProducts {
+                    HStack(spacing: 12) {
+                        ProgressView()
+                        Text(isGerman ? "Produkte werden geladen …" : "Loading products …")
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 120)
+                } else if nonSubscriptionProducts.isEmpty {
+                    ContentUnavailableView {
+                        Label(
+                            isGerman
+                                ? "Keine Produkte verfügbar"
+                                : "No products available",
+                            systemImage: "cart.badge.questionmark"
+                        )
+                    } description: {
+                        Text(
+                            isGerman
+                                ? "Lifetime und Coin-Pakete sind im App Store derzeit nicht verfügbar."
+                                : "Lifetime and coin packs are currently unavailable in the App Store."
+                        )
+                    } actions: {
+                        Button(isGerman ? "Erneut versuchen" : "Try Again") {
+                            Task {
+                                await storeViewModel.loadProducts()
+                            }
+                        }
+                    }
+                } else {
+                    StoreView(
+                        products: nonSubscriptionProducts,
+                        prefersPromotionalIcon: true
+                    )
+                    .productViewStyle(.regular)
+                    .productDescription(.visible)
+                    .storeButton(.visible, for: .restorePurchases)
 
-            Text(
-                isGerman
-                    ? "Preise, Beschreibungen und Käufe werden sicher vom App Store bereitgestellt."
-                    : "Prices, descriptions, and purchases are securely provided by the App Store."
-            )
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-
-            if !storeViewModel.statusMessage.isEmpty {
-                Text(storeViewModel.statusMessage)
+                    Text(
+                        isGerman
+                            ? "Preise, Beschreibungen und Käufe werden sicher vom App Store bereitgestellt."
+                            : "Prices, descriptions, and purchases are securely provided by the App Store."
+                    )
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                }
+
+                if !storeViewModel.statusMessage.isEmpty {
+                    Text(storeViewModel.statusMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
+            .padding(16)
+            .background(
+                Color(.secondarySystemGroupedBackground),
+                in: RoundedRectangle(cornerRadius: 16)
+            )
+            .padding(.horizontal)
+            .padding(.bottom)
         }
-        .padding(16)
-        .background(
-            Color(.secondarySystemGroupedBackground),
-            in: RoundedRectangle(cornerRadius: 16)
-        )
     }
 
     private var usageSummary: some View {
@@ -115,6 +180,11 @@ struct SubscriptionView: View {
     }
 }
 
+private enum StoreSection: Hashable {
+    case subscriptions
+    case oneTimePurchases
+}
+
 private struct UsageValue: View {
     let title: String
     let value: String
@@ -130,30 +200,6 @@ private struct UsageValue: View {
                 .contentTransition(.numericText())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-private struct StoreProductIcon: View {
-    let productID: String
-
-    var body: some View {
-        Image(systemName: symbolName)
-            .font(.title2)
-            .foregroundStyle(.tint)
-            .frame(width: 44, height: 44)
-            .background(.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
-    }
-
-    private var symbolName: String {
-        if productID.contains("coins") {
-            return "bitcoinsign.circle.fill"
-        }
-
-        if productID.contains("lifetime") {
-            return "infinity.circle.fill"
-        }
-
-        return "sparkles"
     }
 }
 

@@ -8,11 +8,13 @@
 import Foundation
 
 struct StoreConfiguration: Decodable {
+    let subscriptionGroupID: String
     let freeLimits: UsageLimits
     let coinCosts: CoinCosts
     let products: [StoreProductDefinition]
 
     static let fallback = StoreConfiguration(
+        subscriptionGroupID: "22210464",
         freeLimits: UsageLimits(
             dailyConversions: 5,
             dailyExports: 5,

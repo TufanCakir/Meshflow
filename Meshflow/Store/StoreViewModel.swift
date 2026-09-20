@@ -19,6 +19,7 @@ final class StoreViewModel: ObservableObject {
     @Published private(set) var dailyExportsUsed: Int
     @Published private(set) var statusMessage = ""
     @Published private(set) var isLoading = false
+    @Published private(set) var hasLoadedProducts = false
 
     private let calendar: Calendar
     private let defaults: UserDefaults
@@ -85,10 +86,17 @@ final class StoreViewModel: ObservableObject {
 
     func loadProducts() async {
         let productIDs = configuration.products.compactMap(\.productID)
-        guard !productIDs.isEmpty else { return }
+        guard !productIDs.isEmpty else {
+            hasLoadedProducts = true
+            return
+        }
 
         isLoading = true
-        defer { isLoading = false }
+        statusMessage = ""
+        defer {
+            isLoading = false
+            hasLoadedProducts = true
+        }
 
         do {
             let products = try await Product.products(for: productIDs)
